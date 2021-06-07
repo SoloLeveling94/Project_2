@@ -1,7 +1,7 @@
 # Presentation
 
   - Hi, I'm SoloLeveling94 and student at OpenClassRooms.
-  - This is my first experience and python project. 
+  - This is my first experience in python project. 
 
 # Project_2 : Programme extraction des prix 
   - Create a script (web scraping) to extract some book's informations with beautifulsoup 4 and write it in a file CSV for each category 
