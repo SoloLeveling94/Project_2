@@ -13,16 +13,22 @@ def get_info_book(url):
         data = response.content
         soup = BeautifulSoup(data, 'html.parser')
         results = soup.find(id='default')
+        table_td = results.select("td")
         product_page_url = value
-        universal_product_code = results.find(
-            'th', text='UPC').find_next_sibling('td').text
-        title = results.find('h1').text
-        price_including_tax = results.find(
-            'th', text='Price (incl. tax)').find_next_sibling('td').text
-        price_excluding_tax = results.find(
-            'th', text='Price (excl. tax)').find_next_sibling('td').text
-        number_search = results.find(
-            'th', text='Availability').find_next_sibling('td').text
+        #universal_product_code = results.find(
+        #    'th', text='UPC').find_next_sibling('td').text
+        universal_product_code = str(table_td[0])[5:-6]
+        #title = results.find('h1').text
+        title = str(results.select("h1"))[5:-6]
+        #price_including_tax = results.find(
+        #    'th', text='Price (incl. tax)').find_next_sibling('td').text
+        price_including_tax = str(table_td[3])[4:-5]
+        #price_excluding_tax = results.find(
+        #    'th', text='Price (excl. tax)').find_next_sibling('td').text
+        price_excluding_tax = str(table_td[2])[4:-5]
+        #number_search = results.find(
+        #    'th', text='Availability').find_next_sibling('td').text
+        number_search = str(table_td[5])[4:-5]
         number_treatment = number_search.rsplit('(')
         number_treatment = number_treatment[1].split()
 
@@ -30,23 +36,35 @@ def get_info_book(url):
             if number.isdigit():
                 number_available = number
 
-        product_description = results.find('div', id='product_description')
-        if product_description is None:
-            product_description = " "
-        else:
-            product_description = results.find(
-                'div', id='product_description').find_next('p').text
+        search_p = results.select("p")
+        #product_description = results.find('div', id='product_description')
+        product_description = str(search_p[3])[3:-4]
+        #if product_description is None:
+        #    product_description = " "
+        #else:
+        #    product_description = results.find(
+        #        'div', id='product_description').find_next('p').text
 
         category_book = key
 
         # Recupere la valeur classe star-rating sans les childs
-        review_rating = results.find('p', class_='star-rating')['class']
-        review_rating = review_rating[1]
-
+        #review_rating = results.find('p', class_='star-rating')['class']
+        #review_rating = review_rating[1]
+        search_rating = str(results.select_one("[class~=star-rating]"))
+        star = ['One', 'Two', 'Three', 'Four', 'Five']
+        for s in star:
+            if s in search_rating:
+                review_rating = s
+        '''
         img_url = results.find(
             'div', {'class': 'item active'}).find_next("img")
         img_url = img_url.get('src')
         img_url = 'http://books.toscrape.com/' + img_url[6:]
+        '''
+        img_url = str(results.select_one("img"))
+        x = img_url.find('../') + 6
+        y = img_url.find('"/>')
+        img_url = 'http://books.toscrape.com/' + img_url[x:y]
 
         info_book = {
             'product_page_url': product_page_url,
