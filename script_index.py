@@ -108,10 +108,10 @@ def save_image(url):
         handler.close()
 
 
-def save_csv():
+def save_csv(my_csv_file):
 
     try:
-        with open(csv_file, 'w', encoding='utf-8-sig') as csvfile:
+        with open(my_csv_file, 'w', encoding='utf-8-sig') as csvfile:
             writer = csv.DictWriter(
                 csvfile, dialect='excel', fieldnames=csv_columns)
             writer.writeheader()
