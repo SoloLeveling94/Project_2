@@ -8,7 +8,7 @@
   - Download pictures of books 
 
 # Setup
-  - Create your repetory, download the file script_index.py and requirements.txt
+  - Create your repetory, download the files script_index.py and requirements.txt
   - Create your virtual environement python3 -m venv env
   - Execute source env/bin/activate
   - Execute pip install -r requirements.txt
