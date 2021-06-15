@@ -4,7 +4,7 @@ import requests
 import csv
 import time
 import os
-
+import timeit
 
 def get_info_book(url):
     try:
@@ -55,12 +55,7 @@ def get_info_book(url):
         for s in star:
             if s in search_rating:
                 review_rating = s
-        '''
-        img_url = results.find(
-            'div', {'class': 'item active'}).find_next("img")
-        img_url = img_url.get('src')
-        img_url = 'http://books.toscrape.com/' + img_url[6:]
-        '''
+       
         img_url = str(results.select_one("img"))
         x = img_url.find('../') + 6
         y = img_url.find('"/>')
@@ -78,8 +73,10 @@ def get_info_book(url):
             'review_rating': review_rating,
             'image_url': img_url
         }
+        print(f"Infos du livre récupérées : {title}")
         lst_info_books.append(info_book)
         save_image(img_url)
+        print(f"-> Image du livre enregistée")
         return lst_info_books
 
     except Exception as e:
@@ -109,7 +106,7 @@ def save_image(url):
 
 
 def save_csv(my_csv_file):
-
+    
     try:
         with open(my_csv_file, 'w', encoding='utf-8-sig') as csvfile:
             writer = csv.DictWriter(
@@ -141,10 +138,6 @@ try:
     soup = BeautifulSoup(data, 'html.parser')
     results = soup.find(id='default')
     next_page_link = soup.find('li', {'class': 'next'})
-    if (next_page_link) != None:
-        next_page_link = next_page_link.find('a').attrs['href']
-        next_page_link = url[:-10] + next_page_link
-
     category_books = soup.find('ul', {'class': 'nav nav-list'}).text
     list_category = category_books.splitlines()
     list_category = list(filter(str.strip, list_category))
@@ -157,27 +150,41 @@ try:
         if cat == 'Books':
             clean_list_category.remove(cat)
 
+    # On crée le dictionnaire de catégorie 'dict_links_category_name' avec nom(clean_list) 
+    # comme key & lien comme value 
+    start_of_f1 = time.time()
     find_links_href = soup.find_all('a', {'href': True})
     for link in find_links_href:
         for lst in clean_list_category:
             if lst == link.text.strip():
                 dict_links_category_name[lst] = 'http://books.toscrape.com/' + link['href']
+    end_of_f1 = time.time()
+    print(f"Temps pour récupèrer le lien des catégories index :{end_of_f1-start_of_f1}")
 
+    # On crée le dictionnaire de liens des pages de chaque catégorie 'dict_link_pages'
+    start_of_f2 = time.time()  
     for lk in dict_links_category_name:
         x = []
         url_lk = dict_links_category_name[lk]
         dict_links_pages[lk] = []
         x.append(url_lk)
-
+        print(f"Récupération du lien des pages de chaque catégorie : {url_lk}")
+        # On récupère les pages suivantes de chaque catégorie si elles existent 
         for i in range(2, 10):
             # time.sleep(1)
             test = url_lk[:-10] + 'page-' + str(i) + '.html'
             response = requests.get(test)
             if response.ok:
                 x.append(test)
+                print(f"-----------------------------------------> {test}")
+            else:
+                break
 
         dict_links_pages[lk] = x
-
+    end_of_f2 = time.time()
+    print(f"Temps pour récupèrer les liens de chaque catégorie :{end_of_f2-start_of_f2}")
+    # On crée 'dict_links_books' et récupère tous les liens book de chaque page
+    start_of_f3 = time.time()
     for key, values in dict_links_pages.items():
         links_books = []
         dict_links_books[key] = []
@@ -193,7 +200,10 @@ try:
                 links_books.append(
                     'http://books.toscrape.com/catalogue/' + link.find('a').attrs['href'][9:])
         dict_links_books[key] = links_books
-
+    end_of_f3 = time.time()
+    print(f"Temps pour récupèrer les liens de chaque livre :{end_of_f3-start_of_f3}")
+    # On récupère tous les info de chaque book, enregistre l'image puis crée un csv par catégorie
+    start_of_f4 = time.time()
     for key, values in dict_links_books.items():
         lst_info_books = []
         csv_columns = ['product_page_url', 'universal_product_code', 'title', 'price_including_tax',
@@ -202,7 +212,10 @@ try:
         csv_file = key.replace(" ", "_") + '.csv'
         for value in values:
             get_info_book(value)
-        save_csv()
-
+            print(f"---> {len(values)} livre(s) traité(s) pour la catégorie {csv_file[:-4]}")
+        save_csv(csv_file)
+        print(f"---> Enregistrement du fichier {csv_file}")
+    end_of_f4 = time.time()
+    print(f"Temps total pour récupèrer les infos, enregistrer image et csv :{end_of_f4-start_of_f4}")
 except Exception as e:
     print(e)
