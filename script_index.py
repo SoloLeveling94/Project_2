@@ -121,6 +121,7 @@ def save_csv(my_csv_file):
     finally:
         csvfile.close()
 
+temps = lambda sec: time.strftime("%Hh%Mm%Ss", time.gmtime(sec)) 
 
 list_category = []
 links_books = []
@@ -158,8 +159,8 @@ try:
         for lst in clean_list_category:
             if lst == link.text.strip():
                 dict_links_category_name[lst] = 'http://books.toscrape.com/' + link['href']
-    end_of_f1 = time.time()
-    print(f"Temps pour récupèrer le lien des catégories index :{end_of_f1-start_of_f1}")
+    f1 = time.time() - start_of_f1
+    print(f"Temps pour récupèrer le lien des catégories index : {f1}s soit {temps(f1)}")
 
     # On crée le dictionnaire de liens des pages de chaque catégorie 'dict_link_pages'
     start_of_f2 = time.time()  
@@ -168,7 +169,7 @@ try:
         url_lk = dict_links_category_name[lk]
         dict_links_pages[lk] = []
         x.append(url_lk)
-        print(f"Récupération du lien des pages de chaque catégorie : {url_lk}")
+        print(f"Récupération du lien n°1 {lk} : {url_lk}")
         # On récupère les pages suivantes de chaque catégorie si elles existent 
         for i in range(2, 10):
             # time.sleep(1)
@@ -176,13 +177,13 @@ try:
             response = requests.get(test)
             if response.ok:
                 x.append(test)
-                print(f"-----------------------------------------> {test}")
+                print(f"--------------> Lien n°{i} {lk} : {test}")
             else:
                 break
 
         dict_links_pages[lk] = x
-    end_of_f2 = time.time()
-    print(f"Temps pour récupèrer les liens de chaque catégorie :{end_of_f2-start_of_f2}")
+    f2 = time.time() - start_of_f2
+    print(f"Temps pour récupèrer les liens de chaque catégorie :{temps(f2)}")
     # On crée 'dict_links_books' et récupère tous les liens book de chaque page
     start_of_f3 = time.time()
     for key, values in dict_links_pages.items():
@@ -199,9 +200,10 @@ try:
             for link in find_links_books:
                 links_books.append(
                     'http://books.toscrape.com/catalogue/' + link.find('a').attrs['href'][9:])
+        print(f"Récupération des liens des livres de catégorie {key} {links_books}\n")
         dict_links_books[key] = links_books
-    end_of_f3 = time.time()
-    print(f"Temps pour récupèrer les liens de chaque livre :{end_of_f3-start_of_f3}")
+    f3 = time.time() - start_of_f3
+    print(f"Temps pour récupèrer le lien des livres :{temps(f3)}")
     # On récupère tous les info de chaque book, enregistre l'image puis crée un csv par catégorie
     start_of_f4 = time.time()
     for key, values in dict_links_books.items():
@@ -212,10 +214,10 @@ try:
         csv_file = key.replace(" ", "_") + '.csv'
         for value in values:
             get_info_book(value)
-            print(f"---> {len(values)} livre(s) traité(s) pour la catégorie {csv_file[:-4]}")
+        print(f"--------> {len(values)} livre(s) traité(s) pour la catégorie {csv_file[:-4]}")
         save_csv(csv_file)
-        print(f"---> Enregistrement du fichier {csv_file}")
-    end_of_f4 = time.time()
-    print(f"Temps total pour récupèrer les infos, enregistrer image et csv :{end_of_f4-start_of_f4}")
+        print(f"--------> Enregistrement du fichier {csv_file}")
+    f4 = time.time() - start_of_f4
+    print(f"Temps total pour récupèrer les infos, enregistrer image et csv :{temps(f4)}")
 except Exception as e:
     print(e)
